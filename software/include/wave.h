@@ -21,36 +21,13 @@ typedef struct {
     uint32_t data_size;           // Positions 41-44: Size of the data section
 } WAV_Header;
 
-/**
- * @brief Write an unsigned integer to a file in little-endian format.
- *
- * @param value The unsigned integer to write.
- * @param num_bytes The number of bytes to write.
- * @param wav_file The file pointer to write to.
- */
+
 void write_little_endian_value(uint32_t value, int num_bytes, FILE *wav_file);
 
-/**
- * @brief Initialize and write the WAV header to the file.
- *
- * @param wav_file The file pointer to write to.
- * @param sample_rate The audio sample rate.
- * @param num_channels The number of audio channels.
- * @param bits_per_sample The bit depth (bits per sample).
- * @param num_samples The total number of samples in the audio.
- */
+
 void initialize_wav_header(FILE *wav_file, uint32_t sample_rate, uint16_t num_channels, uint16_t bits_per_sample, uint32_t num_samples);
 
-/**
- * @brief Create and save a WAV file with the given audio data.
- *
- * @param filename The name of the WAV file.
- * @param num_samples The number of samples in the audio data.
- * @param data The array containing the audio data.
- * @param sample_rate The audio sample rate.
- * @param num_channels The number of audio channels.
- * @param bits_per_sample The bit depth (bits per sample).
- */
+
 void save_wav_file(const char *filename, uint32_t num_samples, uint32_t *data, uint32_t sample_rate, uint16_t num_channels, uint16_t bits_per_sample);
 
 #endif // WAV_H
