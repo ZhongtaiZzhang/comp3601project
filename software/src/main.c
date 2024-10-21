@@ -106,8 +106,54 @@ int main() {
         parsemem(frames[i], TRANSFER_LEN);
         printf("==============================\n");
     }
-    
+
+
+    uint32_t buffer[TRANSFER_RUNS * TRANSFER_LEN] = {0};
+    int index = 0;
+
+    for (int i = 0; i < TRANSFER_RUNS; i++) {
+        int j = 0;
+        while (j < TRANSFER_LEN) {
+            if (frames[i][j] != 0) {
+
+                // Stores values in buffer if fram is not zero 
+                buffer[index++] = frames[i][j]; 
+            }
+            j++; 
+        }
+    }
+
+    printf("Processed elements: %d\n", index);
+
+    // Reverse bits and store in reversedBuffer
+    uint32_t reversedBuffer[TRANSFER_RUNS * TRANSFER_LEN] = {0};
+
+    // Using a single loop to populate reversedBuffer
+    for (int i = 0; i < index; i++) {
+        reversedBuffer[i] = invertBits(buffer[i]);
+    }
+
+
+    save_wav_file("/home/root/m4/command.wav", index, reversedBuffer, SAMPLE_RATE, index);
+
+    printf("Completed audio_i2s_recv\n");
+
     audio_i2s_release(&my_config);
 
     return 0;
+
+}
+
+
+uint32_t invertBits(uint32_t value) {
+    uint32_t inverted = 0;
+    for (int bitPosition = 0; bitPosition < 32; bitPosition++) {
+        inverted <<= 1;  
+
+         // Add the least significant bit of 'value' to 'inverted'        
+        inverted |= (value & 1);   
+        value >>= 1;   
+    }           
+
+    return inverted;
 }
