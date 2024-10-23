@@ -32,6 +32,9 @@ As of now the comp3601 basic requirements have been almost completed. We have co
 
 1. Open Vivado. Click on Create Project and click Next.
 
+![Alt text](<img width="696" alt="Screenshot 2024-10-23 at 3 19 51 pm" src="https://github.com/user-attachments/assets/e8ae868e-2ac1-4bad-914a-014e5f1d8d58">)
+
+
 2. Set Project name and Project location and click Next.
 
 3. Select RTL Project. We will add the sources later so tick Do not specify sources at this time. Click Next.
