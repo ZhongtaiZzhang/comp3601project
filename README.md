@@ -130,7 +130,7 @@ Now repeat, but plug the microphone in - all captures should be “random” val
 <img width="784" alt="Screenshot 2024-10-23 at 4 13 16 pm" src="https://github.com/user-attachments/assets/d76f61b4-b6ea-4e4b-b143-4e49bc28c65f">
 
 
-### Compile and run your code files to produce .wav output file 
+## Compile and run your code files to produce .wav output file 
 
 Navigate to the directory created eariler ''/comp3601/usb''.
 
@@ -149,7 +149,7 @@ on putty terminal
 
  2. Once compiled, now run './M4_output' to start recording the sound. Once the sound has been recorded you will see a message aying a .wav output file has been created.
 
-### Unmount the USB drive from KRIA and connect to computer 
+## Unmount the USB drive from KRIA play .wav file on computer 
 
 To unmount the drive run the command :
 umount /comp3601/usb
