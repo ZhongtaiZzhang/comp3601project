@@ -1,77 +1,20 @@
-/** 22T3 COMP3601 Design Project A
- * File name: main.c
- * Description: Example main file for using the audio_i2s driver for your Zynq audio driver.
- *
- * Distributed under the MIT license.
- * Copyright (c) 2022 Elton Shih
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
- * of the Software, and to permit persons to whom the Software is furnished to do
- * so, subject to the following conditions:
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
 #include <stdio.h>
-#include <string.h>
 #include <stdint.h>
-
+#include <string.h>
 #include "audio_i2s.h"
-// #include "wav.h"
+#include "../include/wave.h"
 
-
-#define TRANSFER_RUNS 10
-
-#define NUM_CHANNELS 2
-#define BPS 24
-#define SAMPLE_RATE 44100
-#define RECORD_DURATION 10
-
-void bin(uint8_t n) {
-    uint8_t i;
-    // for (i = 1 << 7; i > 0; i = i >> 1)
-    //     (n & i) ? printf("1") : printf("0");
-    for (i = 0; i < 8; i++) // LSB first
-        (n & (1 << i)) ? printf("1") : printf("0");
-}
-
-void parsemem(void* virtual_address, int word_count) {
-    uint32_t *p = (uint32_t *)virtual_address;
-    char *b = (char*)virtual_address;
-    int offset;
-
-    uint32_t sample_count = 0;
-    uint32_t sample_value = 0;
-    for (offset = 0; offset < word_count; offset++) {
-        sample_value = p[offset] & ((1<<18)-1);
-        sample_count = p[offset] >> 18;
-
-        for (int i = 0; i < 4; i++) {
-            bin(b[offset*4+i]);
-            printf(" ");
-        }
-        printf(" -> [%d]: %02x (%dp)\n", sample_count, sample_value, sample_value*100/((1<<18)-1));
-    }
-
-}
+#define RECORD_DURATION 8        
+#define TOTAL_SAMPLES (SAMPLE_RATE * RECORD_DURATION * NUM_CHANNELS)
 
 int main() {
-    printf("Entered main\n");
 
-    uint32_t frames[TRANSFER_RUNS][TRANSFER_LEN] = {0};
+    uint32_t audio_buffer[TOTAL_SAMPLES] = {0};
+    uint32_t index = 0;
 
     audio_i2s_t my_config;
     if (audio_i2s_init(&my_config) < 0) {
-        printf("Error initializing audio_i2s\n");
+        printf("Error initializing audio I2S\n");
         return -1;
     }
 
@@ -84,76 +27,29 @@ int main() {
     printf("Before writing to gain: %08x\n", audio_i2s_get_reg(&my_config, AUDIO_I2S_GAIN));
     audio_i2s_set_reg(&my_config, AUDIO_I2S_GAIN, 0x1);
     printf("After writing to gain: %08x\n", audio_i2s_get_reg(&my_config, AUDIO_I2S_GAIN));
-    
+
+    printf("Starting audio recording for %d seconds...\n", RECORD_DURATION);
 
 
-    
-    // audio_i2s_release(&my_config);
-
-    // return 0;
-
-
-    printf("Initialized audio_i2s\n");
-    printf("Starting audio_i2s_recv\n");
-
-    for (int i = 0; i < TRANSFER_RUNS; i++) {
+    while (index < TOTAL_SAMPLES) {
         int32_t *samples = audio_i2s_recv(&my_config);
-        memcpy(frames[i], samples, TRANSFER_LEN*sizeof(uint32_t));
-    }
-
-    for (int i = 0; i < TRANSFER_RUNS; i++) {
-        printf("Frame %d:\n", i);
-        parsemem(frames[i], TRANSFER_LEN);
-        printf("==============================\n");
-    }
-
-
-    uint32_t buffer[TRANSFER_RUNS * TRANSFER_LEN] = {0};
-    int index = 0;
-
-    for (int i = 0; i < TRANSFER_RUNS; i++) {
-        int j = 0;
-        while (j < TRANSFER_LEN) {
-            if (frames[i][j] != 0) {
-
-                // Stores values in buffer if fram is not zero 
-                buffer[index++] = frames[i][j]; 
-            }
-            j++; 
+        
+        for (int i = 0; i < TRANSFER_LEN && index < TOTAL_SAMPLES; i++) {
+            audio_buffer[index++] = samples[i];
         }
     }
 
-    printf("Processed elements: %d\n", index);
-
-    // Reverse bits and store in reversedBuffer
-    uint32_t reversedBuffer[TRANSFER_RUNS * TRANSFER_LEN] = {0};
-
-    // Using a single loop to populate reversedBuffer
-    for (int i = 0; i < index; i++) {
-        reversedBuffer[i] = invertBits(buffer[i]);
+     for (int i = 0; i < 200; i++) {
+        printf("Sample %d: %d\n", i, audio_buffer[i]);  
     }
 
+    printf("Recording complete. Saving to WAV file...\n");
 
-    save_wav_file("/home/root/m4/command.wav", index, reversedBuffer, SAMPLE_RATE, index);
+    save_wav_file("output.wav", TOTAL_SAMPLES, audio_buffer, SAMPLE_RATE, NUM_CHANNELS, BITS_PER_SAMPLE);
 
-    printf("Completed audio_i2s_recv\n");
+    printf("WAV file saved as output.wav\n");
 
     audio_i2s_release(&my_config);
 
     return 0;
-
-}
-
-
-uint32_t invertBits(uint32_t value) {
-    uint32_t inverted = 0;
-    for (int bitPosition = 0; bitPosition < 32; bitPosition++) {
-        inverted <<= 1;  
-
-         // Add the least significant bit of 'value' to 'inverted'        
-        inverted |= (value & 1);   
-        value >>= 1;   
-    }           
-
-    return inverted;
 }
