@@ -9,17 +9,18 @@ UNSW comp3601 project (i2s speaker and microphone)
 
 ## Hardware Components Used 
 
-● Pre-flashed Petalinux image with configured software and example bitstreams on SD card 
-● KriaKV260andpower supply, ethernet cable, USB cable 
-● UNSWCSEDesignProject A/B PMODboard 
-● Adafruit I2S MEMS microphone
-● Output Specker (Will be connected later for project extension)
+1. Pre-flashed Petalinux image with configured software and example bitstreams on SD card
+2. KriaKV260andpower supply, ethernet cable, USB cable
+3. UNSWCSEDesignProject A/B PMODboard 
+4. Adafruit I2S MEMS microphone
+5. Output Specker (Will be connected later for Hardware Audio Output project extension)
+
 
 ## Software Pre-requisites 
 
-● Vitis Vivado 2021.1 
-  o During installation, you need to choose to install the full Vitis package as it will be needed later in this course.
-● IfUbuntu: minicom, if Windows: Putty
+1. Vitis Vivado 2021.1
+   - During installation, you need to choose to install the full Vitis package as it will be needed later in this course.
+2. IfUbuntu: minicom, if Windows: Putty
 
 ## Project Description 
 
