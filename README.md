@@ -60,9 +60,22 @@ As of now the comp3601 basic requirements have been almost completed. We have co
 
 ## Startup Instructions (KRIA KV260 BOARD)
 
+Windows instructions:
+Open PuTTY and go to the terminal settings.
+Enable Implicit CR in every LF
+Implicit LF in every CR
 
+<img width="503" alt="Screenshot 2024-10-23 at 4 29 57 pm" src="https://github.com/user-attachments/assets/c6e69b4a-ea05-41f8-ae9c-f5a40ee586a1">
 
+Now click on Serial, and set it up as follows:
 
+<img width="512" alt="Screenshot 2024-10-23 at 4 30 41 pm" src="https://github.com/user-attachments/assets/5529734e-0e95-452b-8ab4-9bdd86d2ddbe">
+
+Now click on Session, and choose Serial
+
+<img width="511" alt="Screenshot 2024-10-23 at 4 30 53 pm" src="https://github.com/user-attachments/assets/79fe3779-86d9-4d91-96b5-2411bc0ac661">
+
+Now press “Open”, you should get a serial window. Click 'Reset' on the Kria board. Note there is often a long delay between the last OF message and the “Starting tcf-agent:” OK.
 
 ## Conecting the USB drive to KRIA KV260 BOARD 
 
