@@ -32,6 +32,8 @@ As of now the comp3601 basic requirements have been almost completed. We have co
 
 1. Open Vivado. Click on Create Project and click Next.
 
+   <img width="696" alt="Screenshot 2024-10-23 at 3 19 51 pm" src="https://github.com/user-attachments/assets/f0441d73-b2fb-4bd6-9864-2ec730e9fdaa">
+
 ![Alt text](https://ibb.co/WHKk8rW)
 
 
