@@ -34,14 +34,17 @@ As of now the comp3601 basic requirements have been almost completed. We have co
 
    <img width="696" alt="Screenshot 2024-10-23 at 3 19 51 pm" src="https://github.com/user-attachments/assets/f0441d73-b2fb-4bd6-9864-2ec730e9fdaa">
 
-![Alt text](https://ibb.co/WHKk8rW)
-
-
 2. Set Project name and Project location and click Next.
+
+<img width="529" alt="Screenshot 2024-10-23 at 3 20 06 pm" src="https://github.com/user-attachments/assets/75a75adc-89c9-48b2-9380-7c6902aab32b">
 
 3. Select RTL Project. We will add the sources later so tick Do not specify sources at this time. Click Next.
 
+<img width="532" alt="Screenshot 2024-10-23 at 3 20 20 pm" src="https://github.com/user-attachments/assets/3a1e4737-e914-409e-bd80-ff2fd1a2477e">
+
 4. In the Default Part section, click on the Boards tab and type "kv" in the search bar. Select Kria KV260 Vision AI Starter Kit and click Next.
+
+<img width="516" alt="Screenshot 2024-10-23 at 3 20 35 pm" src="https://github.com/user-attachments/assets/50e6c13a-4168-4647-b6f2-f5bd19764e5f">
 
 5. Click Finish to create your project.
 
