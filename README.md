@@ -63,9 +63,7 @@ As of now the comp3601 basic requirements have been almost completed. We have co
 
 A normal USB drive would not be comptible with our KRIA KV260 board, so please watch this youtube tutorial linked below to help convert the USB drive to FAT32 format.
 
-[Click here to watch the USB drive format conversion video](https://www.youtube.com/watch?v=abc123xyz](https://www.youtube.com/watch?v=s4EX5DMEZH0&t=223s)
-
-
+[Click here to watch the USB drive format conversion video](https://www.youtube.com/watch?v=s4EX5DMEZH0&t=223s)
 
 
 
