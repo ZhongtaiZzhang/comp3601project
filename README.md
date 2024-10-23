@@ -136,6 +136,15 @@ on putty terminal
 
  2. Once compiled, now run './M4_output' to start recording the sound. Once the sound has been recorded you will see a message aying a .wav output file has been created.
 
+### Unmount the USB drive from KRIA and connect to computer 
+
+To unmount the drive run the command :
+umount /comp3601/usb
+
+Once unmounted successfully from the KRIA board, connect to your computer and play the .wav file output.
+Currently we have an issue where the audio is not playing properly but will be working on fixing it as soon as possible.
+
+
 
 
 
