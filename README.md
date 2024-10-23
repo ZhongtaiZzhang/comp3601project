@@ -1,4 +1,4 @@
-# comp3601project
+# COMP3601project
 UNSW comp3601 project (i2s speaker and microphone)
 
 ## Group Members
