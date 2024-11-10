@@ -29,8 +29,8 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
-#include "../include/misc.h"
-#include "../include/audio_i2s.h"
+#include "misc.h"
+#include "driver_audio_i2s.h"
 
 
 /**
@@ -40,15 +40,23 @@
  * @return int 
  */
 int audio_i2s_init(audio_i2s_t *config) {
-    int32_t ret = axi_dma_init(&config->s2mm, AXI_DMA_S2MM_PADDR, AXI_DMA_RECV_BUFFER_PADDR, AXI_DMA_RECV_BUFFER_SIZE);
+    int32_t ret;
+    ret = axi_dma_init(&config->s2mm, AXI_DMA_S2MM_PADDR, AXI_DMA_RECV_BUFFER_PADDR, AXI_DMA_RECV_BUFFER_SIZE);
     if (ret < 0) {
         return ret;
     }
     memset(config->s2mm.v_dst_addr, 0, AXI_DMA_RECV_BUFFER_SIZE);
     
+    ret = axi_dma_init(&config->mm2s, AXI_DMA_MM2S_PADDR, AXI_DMA_SEND_BUFFER_PADDR, AXI_DMA_SEND_BUFFER_SIZE);
+    if (ret < 0) {
+        axi_dma_release(&config->s2mm);  // release the resource if thing goes wrong
+        return ret;
+    }
+
     int32_t dev_fd = open("/dev/mem", O_RDWR | O_SYNC);
     if (dev_fd < 0) {
         axi_dma_release(&config->s2mm);
+        axi_dma_release(&config->mm2s);
         return -1;
     }
 
@@ -58,6 +66,7 @@ int audio_i2s_init(audio_i2s_t *config) {
     if (config->v_baseaddr == MAP_FAILED) {
         close(dev_fd);
         axi_dma_release(&config->s2mm);
+        axi_dma_release(&config->mm2s);
         return -1;
     }
 
@@ -66,6 +75,7 @@ int audio_i2s_init(audio_i2s_t *config) {
 
 void audio_i2s_release(audio_i2s_t *config) {
     axi_dma_release(&config->s2mm);
+    axi_dma_release(&config->mm2s);
     munmap(config->v_baseaddr, config->size);
 }
 
@@ -86,4 +96,19 @@ int32_t* audio_i2s_recv(audio_i2s_t *config){  //, void *buffer) { // Currently 
     axi_dma_s2mm_transfer(&config->s2mm, TRANSFER_LEN*sizeof(uint32_t));
     // memcpy(buffer, (void*) config->s2mm->v_dst_addr, TRANSFER_LEN*sizeof(uint32_t));
     return (int32_t*) config->s2mm.v_dst_addr;
+}
+
+int audio_i2s_send(audio_i2s_t *config, uint32_t *buffer, uint32_t size) {
+    if (size % 4 != 0) {
+        printf("Error: Size must be a multiple of 4 bytes.\n");
+        return -1;
+    }
+
+    // Copy data to DMA buffer
+    memcpy(config->mm2s.v_dst_addr, buffer, size);
+
+    // Start MM2S transfer
+    axi_dma_mm2s_transfer(&config->mm2s, size);
+
+    return 0;
 }

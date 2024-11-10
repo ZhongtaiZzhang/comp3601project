@@ -25,7 +25,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "audio_i2s.h"
+#include "../include/audio_i2s.h"
 // #include "wav.h"
 
 
