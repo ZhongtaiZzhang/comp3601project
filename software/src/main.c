@@ -36,6 +36,7 @@
 #define SAMPLE_RATE 44100
 #define RECORD_DURATION 10
 
+// Prints binary representation of uint8_t (8-bit value) LSB first 
 void bin(uint8_t n) {
     uint8_t i;
     // for (i = 1 << 7; i > 0; i = i >> 1)
@@ -96,11 +97,13 @@ int main() {
     printf("Initialized audio_i2s\n");
     printf("Starting audio_i2s_recv\n");
 
+    // Capturing data 
     for (int i = 0; i < TRANSFER_RUNS; i++) {
         int32_t *samples = audio_i2s_recv(&my_config);
         memcpy(frames[i], samples, TRANSFER_LEN*sizeof(uint32_t));
     }
 
+    // loop to print each frame content using parsemem (binary value)
     for (int i = 0; i < TRANSFER_RUNS; i++) {
         printf("Frame %d:\n", i);
         parsemem(frames[i], TRANSFER_LEN);
@@ -111,12 +114,13 @@ int main() {
     uint32_t buffer[TRANSFER_RUNS * TRANSFER_LEN] = {0};
     int index = 0;
 
+    // Copy samples from frame to buffer if they are not zero
     for (int i = 0; i < TRANSFER_RUNS; i++) {
         int j = 0;
         while (j < TRANSFER_LEN) {
             if (frames[i][j] != 0) {
 
-                // Stores values in buffer if fram is not zero 
+                // Stores values in buffer if frame is not zero 
                 buffer[index++] = frames[i][j]; 
             }
             j++; 
@@ -144,7 +148,7 @@ int main() {
 
 }
 
-
+// Function to reverse captured bits 
 uint32_t invertBits(uint32_t value) {
     uint32_t inverted = 0;
     for (int bitPosition = 0; bitPosition < 32; bitPosition++) {

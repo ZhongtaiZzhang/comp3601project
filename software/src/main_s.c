@@ -6,7 +6,12 @@
 
 #define SAMPLE_RATE 44100
 #define PLAY_DURATION 8 
-#define TOTAL_SAMPLES (SAMPLE_RATE * PLAY_DURATION)
+
+// Function to calculate max number of data samples fit in a chunk to send
+size_t calculate_max_sample_size() {
+    return AXI_DMA_SEND_BUFFER_SIZE / 4; // We are only sending 32-bit samples
+}
+
 
 int main() {
     audio_i2s_t my_config;
@@ -34,19 +39,67 @@ int main() {
     printf("Channels: %u\n", audio_data->num_channels);
     printf("Bits per Sample: %u\n", audio_data->bits_per_sample);
 
-    // Send audio data to speaker 
-    printf("Starting audio playback...\n");
-    if (audio_i2s_send(&my_config, (uint32_t*)audio_data->audio_data, audio_data->data_size) < 0) {
-        fprintf(stderr, "Error playing audio\n");
+    // Allocate buffer memory to store 32-bit samples 
+    uint32_t *data_ptr = (uint32_t *)malloc(audio_data->data_size * 2); // Buffer for 32-bit samples
+    if (!data_ptr) {
+        fprintf(stderr, "Failed to allocate buffer\n");
         free_audio_data(audio_data);
         audio_i2s_release(&my_config);
         return -1;
     }
 
+    // Check if it is a 16-bit sample size 
+    // if it is then convert to 32-bit sample by padding with zeroes 
+    if (audio_data->bits_per_sample == 16) {
+        uint16_t *original_data = (uint16_t *)audio_data->audio_data;
+
+        // loops through all 16-bit samples 
+        for (size_t i = 0; i < audio_data->data_size / 2; i++) {
+
+            // automatically pads 0s when converting to 32-bit samples 
+            data_ptr[i] = (uint32_t)original_data[i]; 
+        }
+    } else {
+
+        // copies data directly to data_ptr buffer as data was already read in 32-bit samples 
+        memcpy(data_ptr, audio_data->audio_data, audio_data->data_size);
+    }
+
+    // Calculate number of samples that fit in one chunk to send in AXI DMA SEND BUFFER via mm2s channel
+    size_t max_sample_size = calculate_max_sample_size();
+    if (max_sample_size == 0) {
+        free_audio_data(audio_data);
+        audio_i2s_release(&my_config);
+        return -1;
+    }
+
+    size_t total_samples = audio_data->data_size / (audio_data->bits_per_sample / 8);
+    size_t samples_sent = 0;
+
+    // Send audio data to speaker 
+    printf("Starting audio playback...\n");
+
+    // Send 32-bit samples in chunks
+    while (samples_sent < total_samples) {
+
+        // if samples_to_send exceeds max sample size that can be sent 
+        // then samples_to_send is capped at max_sample_size 
+        size_t samples_to_send = (total_samples - samples_sent < max_sample_size) ? (total_samples - samples_sent) : max_sample_size;
+
+        if (audio_i2s_send(&my_config, &data_ptr[samples_sent], samples_to_send * sizeof(uint32_t)) < 0) {
+            fprintf(stderr, "Error playing audio\n");
+            break;
+        }
+
+        samples_sent += samples_to_send;
+        usleep((samples_to_send * 1000000) / SAMPLE_RATE);
+    }
+
     // Free resources 
+    free(data_ptr);
     free_audio_data(audio_data);
     audio_i2s_release(&my_config);
 
-    printf("Playback complete.\n");
+    printf("Playback finished.\n");
     return 0;
 }

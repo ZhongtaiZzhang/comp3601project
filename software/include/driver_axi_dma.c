@@ -23,7 +23,7 @@
  * SOFTWARE.
  */
 
-#include "axi_dma.h"
+#include "driver_axi_dma.h"
 
 #include <stdio.h> // todo: remove this once debugging is finished
 #include <unistd.h>
