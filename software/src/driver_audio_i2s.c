@@ -29,8 +29,8 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 
-#include "misc.h"
-#include "driver_audio_i2s.h"
+#include "../include/misc.h"
+#include "../include/driver_audio_i2s.h"
 
 
 /**
