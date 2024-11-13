@@ -157,6 +157,12 @@ umount /comp3601/usb
 Once unmounted successfully from the KRIA board, connect to your computer and play the .wav file output.
 Currently we have an issue where the audio is not playing properly but will be working on fixing it as soon as possible.
 
+## Extension for speaker 
+
+1. Use the same steps mentioned in the run your code files but this this the program will run using the main_s.c to start playback for speaker.
+2. Current speaker does not provide any output as expected.
+3. We have started the testing and debugging process and with new feedback received regarding testing the speaker components separately using the oscilloscope, we are confident we can fix this error if we had roughly around a week more to work on this project. Module testing has been completed at this stage and we can confirm using testbench outputs that the vhdl data path is working as expected and the software is processing data samples correctly from the waveform fles for the speaker.
+
 
 
 
