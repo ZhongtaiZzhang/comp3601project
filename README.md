@@ -159,6 +159,38 @@ Currently we have an issue where the audio is not playing properly but will be w
 
 ## Extension for speaker 
 
+# Additional components used 
+
+- i2s amp soldered to speaker
+- other components were the same
+
+# Additional vhdl files added
+
+i2s_master_speaker.vhd: Manages I2S data transmission to speaker by using bclk and lrcl clocks and handling data transfer from FIFO buffer to i2s amp connected to the speaker.
+
+FIFO : We use same component as for mic input but it’s instantiated as a different component in audio pipeline. These two instances will operate separately.
+
+audio_pipeline.vhd has been extended for speaker and params.vhd file has also been modified for this to connect to the audio pipeline.
+
+# Additional software files added
+
+Software:
+
+axi_dma.c/h: This driver handles the Direct Memory Access (DMA) operations, crucial for moving audio data between memory and the FPGA. driver_axi_dma.c/h for speaker.
+
+audio_i2s.c/h: Manages the I2S protocol, which is used for audio data transmission.  We have two versions of this, one for i2s mic and the driver_audio_i2s for speaker.
+
+wav.c/h: Responsible for converting raw audio data into a .wav format, making it accessible and storable.
+convert_audio.c/h: Processes the .wav file by removing the file header, and preparing the audio data for further handling. (audio_data.c)
+
+main.c/main_s.c: main files for using functions in the other files to process the data during input from microphone and store in wav file, for speaker the main reads from wav file process to axi dma.
+
+main.c focuses on processing the data received from i2s microphone via S2MM data channel in the AXI DMA and storing it in the form of a wave file.
+
+main_s.c is responsible for using necessary functions from speaker drivers and making sure data is read from wav file and using driver_audio_i2s(speaker i2s) function to send data to the speaker i2s via MM2S data channel in axi dma.
+
+# Running the extended system
+
 1. Use the same steps mentioned in the run your code files but this this the program will run using the main_s.c to start playback for speaker.
 2. Current speaker does not provide any output as expected.
 3. We have started the testing and debugging process and with new feedback received regarding testing the speaker components separately using the oscilloscope, we are confident we can fix this error if we had roughly around a week more to work on this project. Module testing has been completed at this stage and we can confirm using testbench outputs that the vhdl data path is working as expected and the software is processing data samples correctly from the waveform fles for the speaker.
