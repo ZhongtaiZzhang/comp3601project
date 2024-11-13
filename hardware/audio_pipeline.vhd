@@ -171,7 +171,7 @@ begin
     begin
         sig_mic_enable <= sig_control_reg(0); -- Bit 0 enables microphone
         sig_speaker_enable <= sig_control_reg(1); -- Bit 1 enables speaker
-        sig_speaker_enable <= '1'; -- testing
+    --    sig_speaker_enable <= '1'; -- testing
     end process;
 
     sig_fifo_rst <= not rst when sig_mic_enable = '1' else '1';
