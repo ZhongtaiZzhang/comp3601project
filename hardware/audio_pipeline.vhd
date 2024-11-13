@@ -1,7 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
+ 
 library work;
 use work.aud_param.all;
 
@@ -17,8 +17,17 @@ entity audio_pipeline is
     );
     port(
         clk: in std_logic;
-        clk_1            : in  std_logic;
+        clk_1: in  std_logic;
         rst: in std_logic;
+        
+        -- testing ports -------------------------------------------------------------------------------------
+        signal_write_fifo_speaker : out std_logic_vector(DATA_WIDTH-1 downto 0);
+        fifo_data_out_speaker : out std_logic_vector(DATA_WIDTH-1 downto 0);
+        fifo_wr_speaker : out std_logic;
+        fifo_full_speaker : out std_logic;
+        speaker_enable : out std_logic;
+        control_reg : out std_logic_vector(DATA_WIDTH-1 downto 0);
+        -------------------------------------------------------------------------------------------------------------
 
         --------------------------------------------------
         -- I2S
@@ -26,7 +35,14 @@ entity audio_pipeline is
         i2s_bclk        : out std_logic;
         i2s_lrcl        : out std_logic;
         i2s_dout        : in  std_logic;
-
+        
+        --------------------------------------------------
+        -- I2S for Speaker
+        --------------------------------------------------
+        i2s_bclk_speaker : out std_logic;
+        i2s_lrcl_speaker : out std_logic;
+        i2s_din_speaker : out std_logic;
+        
         --------------------------------------------------
         -- AXI4-Stream
         --------------------------------------------------
@@ -35,6 +51,11 @@ entity audio_pipeline is
         axis_tready     : in  std_logic;
         axis_tlast      : out std_logic;
         
+        -- Speaker  
+        axis_tdata_s : in std_logic_vector(DATA_WIDTH-1 downto 0);
+        axis_tvalid_s : in std_logic;
+        axis_tready_s : out std_logic;
+        axis_tlast_s : in std_logic;
         --------------------------------------------------
         -- Control interface (AXI4-Lite)
         --------------------------------------------------
@@ -73,7 +94,19 @@ architecture Behavioural of audio_pipeline is
     signal sig_fifo_empty           : std_logic;
     signal sig_fifo_data_w          : std_logic_vector(DATA_WIDTH-1 downto 0);
     signal sig_fifo_data_r          : std_logic_vector(DATA_WIDTH-1 downto 0);
-
+  
+    
+    --------------------------------------------------
+    -- FIFO for Speaker
+    --------------------------------------------------
+    signal sig_fifo_rst_speaker : std_logic;
+    signal sig_fifo_wr_speaker : std_logic;
+    signal sig_fifo_rd_speaker : std_logic;
+    signal sig_fifo_full_speaker : std_logic;
+    signal sig_fifo_empty_speaker : std_logic;
+    signal sig_fifo_data_w_speaker : std_logic_vector(DATA_WIDTH-1 downto 0);
+    signal sig_fifo_data_r_speaker : std_logic_vector(DATA_WIDTH-1 downto 0);
+    
     --------------------------------------------------
     -- AXI4-Stream
     --------------------------------------------------
@@ -88,8 +121,14 @@ architecture Behavioural of audio_pipeline is
     signal sig_control_reg          : std_logic_vector(DATA_WIDTH-1 downto 0);
     signal sig_status_reg           : std_logic_vector(DATA_WIDTH-1 downto 0);
     signal sig_gain_reg             : std_logic_vector(DATA_WIDTH-1 downto 0);
-
+    signal sig_mic_enable : std_logic := '0'; -- Enable signal for microphone
+    signal sig_speaker_enable : std_logic := '0'; -- Enable signal for speaker
+    
 begin
+    
+    -- for testing data transfer to speaker 
+    --sig_fifo_wr_speaker_out <= sig_fifo_wr_speaker;
+    --sig_fifo_full_speaker_out <= sig_fifo_full_speaker;
 
     sig_status_reg <= x"0ca7cafe";
     --------------------------------------------------
@@ -128,8 +167,15 @@ begin
 		S_AXI_RREADY	=> s00_axi_rready
 	);
 
-    -- sig_fifo_rst <= not rst; -- AXIS reset is active low
-    sig_fifo_rst <= '0';
+    process (sig_control_reg)
+    begin
+        sig_mic_enable <= sig_control_reg(0); -- Bit 0 enables microphone
+        sig_speaker_enable <= sig_control_reg(1); -- Bit 1 enables speaker
+        sig_speaker_enable <= '1'; -- testing
+    end process;
+
+    sig_fifo_rst <= not rst when sig_mic_enable = '1' else '1';
+    sig_fifo_rst_speaker <= not rst when sig_speaker_enable = '1' else '1';
 
     --------------------------------------------------
     -- I2S Master
@@ -172,6 +218,65 @@ begin
         dout            => sig_fifo_data_r,
         empty           => sig_fifo_empty
     );
+    
+    --------------------------------------------------
+    -- FIFO for Speaker
+    --------------------------------------------------
+    inst_fifo_speaker : fifo 
+    generic map (
+        data_width => DATA_WIDTH,
+        fifo_depth => FIFO_DEPTH
+    )
+    port map (
+        clkw => clk,
+        clkr => clk,
+        rst => sig_fifo_rst_speaker,
+
+        wr => sig_fifo_wr_speaker,
+        din => sig_fifo_data_w_speaker,
+        full => sig_fifo_full_speaker,
+
+        rd => sig_fifo_rd_speaker,
+        dout => sig_fifo_data_r_speaker,
+        empty => sig_fifo_empty_speaker
+    );
+    
+    --------------------------------------------------
+    -- I2S Master for Speaker
+    --------------------------------------------------
+    inst_i2s_master_speaker : i2s_master_speaker
+    generic map (
+        DATA_WIDTH => DATA_WIDTH,
+        PCM_PRECISION => PCM_PRECISION
+    )
+    port map (
+        clk => clk,
+        clk_1 => clk_1,
+
+        i2s_lrcl => i2s_lrcl_speaker,
+        i2s_din => i2s_din_speaker,
+        i2s_bclk => i2s_bclk_speaker,
+
+        fifo_data => sig_fifo_data_r_speaker,
+        fifo_r_stb => sig_fifo_rd_speaker,
+        fifo_empty => sig_fifo_empty_speaker
+    );
+
+    --------------------------------------------------
+    -- AXIS to FIFO Interface for Speaker
+    --------------------------------------------------
+    sig_fifo_wr_speaker <= axis_tvalid_s and (not sig_fifo_full_speaker) and sig_speaker_enable;
+    sig_fifo_data_w_speaker <= axis_tdata_s;
+    axis_tready_s <= not sig_fifo_full_speaker; 
+    
+    -- testing 
+   signal_write_fifo_speaker <= sig_fifo_data_w_speaker;
+   fifo_data_out_speaker <= sig_fifo_data_r_speaker;
+   fifo_wr_speaker <= sig_fifo_wr_speaker;
+   fifo_full_speaker <= sig_fifo_full_speaker;
+   speaker_enable <= sig_speaker_enable;
+   control_reg <= sig_control_reg;
+    ----------------------------------------------------
 
     --------------------------------------------------
     -- FIFO to AXIS
